@@ -1,10 +1,7 @@
 package com.ian.jwt.domain;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -25,6 +22,9 @@ public class Article {
     @Column(name = "title", nullable = false)
     private String title;
 
+    @Column(name = "author", nullable = false)
+    private String author;
+
     @Column(name = "content", nullable = false)
     private String content;
 
@@ -37,8 +37,9 @@ public class Article {
     private LocalDateTime updatedAt;
 
     @Builder
-    public Article(String title, String content) {
+    public Article(String title, String author, String content) {
         this.title = title;
+        this.author = author;
         this.content = content;
     }
 

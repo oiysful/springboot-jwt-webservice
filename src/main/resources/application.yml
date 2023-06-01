@@ -1,7 +1,10 @@
 server:
   port: 9000
 
+
 spring:
+  profiles:
+    include: oauth, jwt
   jpa:
     # 전송 쿼리 확인
     show-sql: true
@@ -16,17 +19,3 @@ spring:
   h2:
     console:
       enabled: true
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: 515441754861-7g8ptarl3rj61a7oqnarkcgubmt5rikl.apps.googleusercontent.com
-            client-secret: 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
-            scope:
-              - email
-              - profile
-
-jwt:
-  issuer: oiysful@gmail.com
-  secret_key: study-springboot
