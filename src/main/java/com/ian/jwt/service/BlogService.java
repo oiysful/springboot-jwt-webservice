@@ -1,5 +1,6 @@
 package com.ian.jwt.service;
 
+import com.ian.jwt.config.error.exception.ArticleNotFoundException;
 import com.ian.jwt.domain.Article;
 import com.ian.jwt.dto.AddArticleRequest;
 import com.ian.jwt.dto.UpdateArticleRequest;
@@ -27,7 +28,7 @@ public class BlogService {
 
     public Article findById(long id) {
         return blogRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("not found: " + id));
+                .orElseThrow(ArticleNotFoundException::new);
     }
 
     public void delete(long id) {

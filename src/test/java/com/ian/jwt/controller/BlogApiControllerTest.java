@@ -1,6 +1,8 @@
 package com.ian.jwt.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.javafaker.Faker;
+import com.ian.jwt.config.error.ErrorCode;
 import com.ian.jwt.domain.Article;
 import com.ian.jwt.domain.User;
 import com.ian.jwt.dto.AddArticleRequest;
@@ -28,6 +30,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -188,5 +191,88 @@ class BlogApiControllerTest {
                 .author(user.getUsername())
                 .content("content")
                 .build());
+    }
+
+    @DisplayName("addArticle: 아티클을 추가할 때 title이 null이면 실패")
+    @Test
+    public void addArticleNullValidation() throws Exception {
+        // given
+        final String url = "/api/articles";
+        final String title = null;
+        final String content = "content";
+        final AddArticleRequest userRequest = new AddArticleRequest(title, content);
+
+        final String requestBody = objectMapper.writeValueAsString(userRequest);
+
+        Principal principal = Mockito.mock(Principal.class);
+        Mockito.when(principal.getName()).thenReturn("username");
+
+        // when
+        ResultActions result = mockMvc.perform(post(url)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .principal(principal)
+                .content(requestBody));
+
+        // then
+        result.andExpect(status().isBadRequest());
+    }
+
+    @DisplayName("addArticle: 아티클을 추가할 때 title이 10자를 넘으면 실패")
+    @Test
+    public void addArticleSizeValidation() throws Exception {
+        // given
+        Faker faker = new Faker();
+        final String url = "/api/articles";
+        final String title = faker.lorem().characters(11);
+        final String content = "content";
+        final AddArticleRequest userRequest = new AddArticleRequest(title, content);
+
+        final String requestBody = objectMapper.writeValueAsString(userRequest);
+
+        Principal principal = Mockito.mock(Principal.class);
+        Mockito.when(principal.getName()).thenReturn("username");
+
+        // when
+        ResultActions result = mockMvc.perform(post(url)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .principal(principal)
+                .content(requestBody));
+
+        // then
+        result.andExpect(status().isBadRequest());
+    }
+
+    @DisplayName("findArticle: 잘못된 HTTP 메소드로 아티클을 조회하려고 하면 조회에 실패")
+    @Test
+    public void invalidHttpMethod() throws Exception {
+        // given
+        final String url = "/api/articles/{id}";
+
+        // when
+        final ResultActions resultActions = mockMvc.perform(post(url, 1));
+
+        // then
+        resultActions
+                .andDo(print())
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(jsonPath("$.message").value(ErrorCode.METHOD_NOT_ALLOWED.getMessage()));
+    }
+
+    @DisplayName("findArticle: 존재하지 않는 아티클을 조회하려고 하면 조회에 실패")
+    @Test
+    public void findArticleInvalidArticle() throws Exception {
+        // given
+        final String url = "/api/articles/{id}";
+        final long invalidId = 1;
+
+        // when
+        final ResultActions resultActions = mockMvc.perform(get(url, invalidId));
+
+        // then
+        resultActions
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value(ErrorCode.ARTICLE_NOT_FOUND.getMessage()))
+                .andExpect(jsonPath("$.code").value(ErrorCode.ARTICLE_NOT_FOUND.getCode()));
     }
 }
